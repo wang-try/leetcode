@@ -1891,25 +1891,6 @@ func sortColors(nums []int) {
 	}
 }
 
-func main() {
-	//board := [][]byte{
-	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
-	//	{'6', '.', '.', '1', '9', '5', '.', '.', '.'},
-	//	{'.', '9', '8', '.', '.', '.', '.', '6', '.'},
-	//	{'8', '.', '.', '.', '6', '.', '.', '.', '3'},
-	//	{'4', '.', '.', '8', '.', '3', '.', '.', '1'},
-	//	{'7', '.', '.', '.', '2', '.', '.', '.', '6'},
-	//	{'.', '6', '.', '.', '.', '.', '2', '8', '.'},
-	//	{'.', '.', '.', '4', '1', '9', '.', '.', '5'},
-	//	{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
-	//}
-	//fmt.Println(isValidSudoku(board))
-	//["abbbbbbbbbbb","aaaaaaaaaaab"]
-	nums := []int{1, 2, 3}
-	fmt.Println(subsetsV2(nums))
-	fmt.Println(true || false)
-}
-
 //[78]Subsets	7,293.2%	Medium	0.0%
 
 func subsets(nums []int) [][]int {
@@ -2010,4 +1991,90 @@ func dfs(board [][]byte, word string, x, y int) bool {
 	}
 	board[x][y] = tmp
 	return false
+}
+
+//91. Decode Ways
+func numDecodings(s string) int {
+	if s[0] == '0' {
+		return 0
+	}
+	lth := len(s)
+	dp := make([]int, lth+1)
+	dp[0] = 1
+	dp[1] = 1
+	for i := 1; i < lth; i++ {
+		val := (s[i-1]-'0')*10 + (s[i] - '0')
+		if s[i] >= '1' && s[i] <= '9' && val >= 10 && val <= 26 {
+			dp[i+1] = dp[i] + dp[i-1]
+		} else if s[i] >= '1' && s[i] <= '9' && (val < 10 || val > 26) {
+			dp[i+1] = dp[i]
+		} else if s[i] == '0' && val >= 10 && val <= 26 {
+			dp[i+1] = dp[i-1]
+		} else {
+			return 0
+		}
+	}
+	return dp[lth]
+
+}
+
+func numDecodingsV2(s string) int {
+	lth := len(s)
+	if string(s[0]) == "0" {
+		return 0
+	}
+	dp := make([]int, lth+1)
+	dp[0] = 1
+	dp[1] = 1
+	for i := 2; i < lth+1; i++ {
+		dp[i] = 0
+		if s[i-1] > '0' {
+			dp[i] = dp[i-1]
+		}
+		if s[i-2] == '1' || (s[i-2] == '2' && s[i-1] < '7') {
+			dp[i] += dp[i-2]
+
+		}
+	}
+	return dp[lth]
+}
+
+//98. Validate Binary Search Tree
+func isValidBST(root *TreeNode) bool {
+	if root == nil {
+		return true
+	}
+	if root.Left == nil && root.Right != nil {
+		if root.Right.Val > root.Val {
+			return isValidBST(root.Right)
+		}
+	} else if root.Left != nil && root.Right == nil {
+		if root.Left.Val < root.Val {
+			return isValidBST(root.Right)
+		}
+	} else if root.Left == nil && root.Right == nil {
+		return true
+	} else {
+		if root.Left.Val < root.Val && root.Right.Val > root.Val {
+			return isValidBST(root.Left) && isValidBST(root.Right)
+		}
+	}
+	return false
+}
+
+func main() {
+	//board := [][]byte{
+	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+	//	{'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+	//	{'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+	//	{'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+	//	{'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+	//	{'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+	//	{'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+	//	{'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+	//	{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
+	//}
+	//fmt.Println(isValidSudoku(board))
+	//["abbbbbbbbbbb","aaaaaaaaaaab"]
+	fmt.Println(numDecodings("226"))
 }

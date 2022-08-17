@@ -2041,25 +2041,344 @@ func numDecodingsV2(s string) int {
 
 //98. Validate Binary Search Tree
 func isValidBST(root *TreeNode) bool {
+	return RecValidate(root, nil, nil)
+}
+
+func RecValidate(node, min, max *TreeNode) bool {
+	if node == nil {
+		return true
+	}
+	if min != nil && node.Val <= min.Val {
+		return false
+	}
+	if max != nil && node.Val >= max.Val {
+		return false
+	}
+	return RecValidate(node.Left, min, node) && RecValidate(node.Right, node, max)
+}
+
+//102. Binary Tree Level Order Traversal
+func levelOrder(root *TreeNode) [][]int {
 	if root == nil {
-		return true
+		return nil
 	}
-	if root.Left == nil && root.Right != nil {
-		if root.Right.Val > root.Val {
-			return isValidBST(root.Right)
+	var res [][]int
+	var stack []*TreeNode
+	stack = append(stack, root)
+
+	for len(stack) > 0 {
+		lth := len(stack)
+		var tmp []int
+		for i := 0; i < lth; i++ {
+			tmp = append(tmp, stack[i].Val)
+			if stack[i].Left != nil {
+				stack = append(stack, stack[i].Left)
+			}
+			if stack[i].Right != nil {
+				stack = append(stack, stack[i].Right)
+			}
 		}
-	} else if root.Left != nil && root.Right == nil {
-		if root.Left.Val < root.Val {
-			return isValidBST(root.Right)
+		res = append(res, tmp)
+		stack = stack[lth:]
+	}
+
+	return res
+}
+
+func levelOrderV2(root *TreeNode) [][]int {
+	result := [][]int{}
+	return traceTree(root, 0, result)
+}
+
+func traceTree(root *TreeNode, level int, result [][]int) [][]int {
+	if root == nil {
+		return result
+	}
+	if len(result) < level+1 {
+		result = append(result, []int{})
+	}
+	result[level] = append(result[level], root.Val)
+	result = traceTree(root.Left, level+1, result)
+	result = traceTree(root.Right, level+1, result)
+	return result
+}
+
+//103. Binary Tree Zigzag Level Order Traversal
+func zigzagLevelOrder(root *TreeNode) [][]int {
+	if root == nil {
+		return nil
+	}
+	var res [][]int
+	var stack []*TreeNode
+	stack = append(stack, root)
+	cnt := 0
+	for len(stack) > 0 {
+		lth := len(stack)
+		var levelVals []int
+		for i := 0; i < lth; i++ {
+			levelVals = append(levelVals, stack[i].Val)
+			if stack[i].Left != nil {
+				stack = append(stack, stack[i].Left)
+			}
+			if stack[i].Right != nil {
+				stack = append(stack, stack[i].Right)
+			}
 		}
-	} else if root.Left == nil && root.Right == nil {
-		return true
+		if cnt&1 == 1 {
+			lhs := 0
+			rhs := len(levelVals) - 1
+			for lhs < rhs {
+				levelVals[lhs], levelVals[rhs] = levelVals[rhs], levelVals[lhs]
+				lhs++
+				rhs--
+			}
+		}
+		res = append(res, levelVals)
+		stack = stack[lth:]
+		cnt++
+	}
+	return res
+}
+
+func zigzagLevelOrderV2(root *TreeNode) [][]int {
+	res := [][]int{}
+	return zigzagLevelOrderHelp(root, 0, res)
+}
+
+func zigzagLevelOrderHelp(root *TreeNode, level int, res [][]int) [][]int {
+	if root == nil {
+		return res
+	}
+	if len(res) < level+1 {
+		res = append(res, []int{})
+	}
+	if level&1 == 1 {
+		res[level] = append([]int{root.Val}, res[level]...)
 	} else {
-		if root.Left.Val < root.Val && root.Right.Val > root.Val {
-			return isValidBST(root.Left) && isValidBST(root.Right)
+		res[level] = append(res[level], root.Val)
+	}
+	res = zigzagLevelOrderHelp(root.Left, level+1, res)
+	res = zigzagLevelOrderHelp(root.Right, level+1, res)
+	return res
+}
+
+//105. Construct Binary Tree from Preorder and Inorder Traversal
+func buildTree(preorder []int, inorder []int) *TreeNode {
+	if len(preorder) == 0 {
+		return nil
+	}
+	index := targetIndex(inorder, preorder[0])
+	leftLength := len(inorder[:index])
+	//rightLength := len(inorder[index+1:])
+	root := &TreeNode{
+		Val:   preorder[0],
+		Left:  buildTree(preorder[1:leftLength+1], inorder[:index]),
+		Right: buildTree(preorder[leftLength+1:], inorder[index+1:]),
+	}
+	return root
+}
+
+func targetIndex(nums []int, target int) int {
+	for i := 0; i < len(nums); i++ {
+		if target == nums[i] {
+			return i
 		}
 	}
-	return false
+	return -1
+}
+
+// Definition for a Node.
+type Node struct {
+	Val   int
+	Left  *Node
+	Right *Node
+	Next  *Node
+}
+
+//116. Populating Next Right Pointers in Each Node
+func connect(root *Node) *Node {
+	if root == nil {
+		return nil
+	}
+	var stack []*Node
+	stack = append(stack, root)
+	for len(stack) > 0 {
+		lth := len(stack)
+		for i := 0; i < lth; i++ {
+			if i < lth-1 {
+				stack[i].Next = stack[i+1]
+			}
+
+			if stack[i].Left != nil {
+				stack = append(stack, stack[i].Left)
+			}
+			if stack[i].Right != nil {
+				stack = append(stack, stack[i].Right)
+			}
+		}
+		stack = stack[lth:]
+	}
+	return root
+}
+
+func connectV2(root *Node) *Node {
+	if root == nil {
+		return nil
+	}
+
+	if root.Left != nil {
+		root.Left.Next = root.Right
+		if root.Next != nil {
+			root.Right.Next = root.Next.Left
+		}
+	}
+
+	connectV2(root.Left)
+	connectV2(root.Right)
+
+	return root
+}
+
+//122. Best Time to Buy and Sell Stock II
+func maxProfitII(prices []int) int {
+	maxP := 0
+	for i := 1; i < len(prices); i++ {
+		if prices[i] > prices[i-1] {
+			maxP += prices[i] - prices[i-1]
+		}
+	}
+	return maxP
+}
+
+func maxProfitIIV2(prices []int) int {
+	lth := len(prices)
+	dp := make([][]int, lth)
+	for i := 0; i < lth; i++ {
+		dp[i] = make([]int, 2)
+	}
+	//持有
+	dp[0][0] = -prices[0]
+	//未持有
+	dp[0][1] = 0
+	for i := 1; i < lth; i++ {
+		dp[i][0] = max(dp[i-1][1]-prices[i], dp[i-1][0])
+		dp[i][1] = max(dp[i-1][1], dp[i-1][0]+prices[i])
+	}
+	return max(dp[lth-1][0], dp[lth-1][1])
+}
+
+func maxProfitIIV3(prices []int) int {
+	lth := len(prices)
+	hold := -prices[0]
+	noHold := 0
+	for i := 1; i < lth; i++ {
+		hold = max(hold, noHold-prices[i])
+		noHold = max(noHold, hold+prices[i])
+	}
+	return noHold
+}
+
+func longestConsecutive(nums []int) int {
+	child2father := make(map[int]int)
+	for i := 0; i < len(nums); i++ {
+		child2father[nums[i]] = nums[i]
+	}
+	for k, _ := range child2father {
+		if _, ok := child2father[k+1]; ok {
+			child2father[k] = child2father[k+1]
+		}
+	}
+
+	for c, f := range child2father {
+		father := f
+		for {
+			if v, ok := child2father[father]; ok && v != father {
+				child2father[c] = child2father[father]
+				father = v
+			} else {
+				break
+			}
+		}
+	}
+	maxC := 0
+	for c, f := range child2father {
+		if f-c+1 > maxC {
+			maxC = f - c + 1
+		}
+	}
+	return maxC
+}
+
+func longestConsecutiveV2(nums []int) int {
+	record := make(map[int]bool)
+	for _, num := range nums {
+		record[num] = true
+	}
+	maxC := 0
+	for _, num := range nums {
+		if _, ok := record[num-1]; !ok {
+			curNum := num + 1
+			tmpCon := 1
+			for {
+				if _, tmpOk := record[curNum]; tmpOk {
+					curNum++
+					tmpCon++
+				} else {
+					break
+				}
+			}
+			if tmpCon > maxC {
+				maxC = tmpCon
+			}
+		}
+
+	}
+	return maxC
+}
+
+type Dsu struct {
+	parent map[int]int
+}
+
+func NewDsu(nums []int) *Dsu {
+	parent := make(map[int]int)
+	for _, num := range nums {
+		parent[num] = num
+	}
+	return &Dsu{parent: parent}
+}
+
+func (d *Dsu) find(child int) int {
+	if father, ok := d.parent[child]; ok && child != father {
+		d.parent[child] = d.find(father)
+	}
+	return d.parent[child]
+}
+
+func (d *Dsu) connect(child int, father int) {
+	d.parent[child] = d.find(father)
+}
+
+func longestConsecutiveV3(nums []int) int {
+	dsu := NewDsu(nums)
+	for _, num := range nums {
+		if _, ok := dsu.parent[num-1]; ok {
+			dsu.connect(num-1, num)
+		}
+		if _, ok := dsu.parent[num+1]; ok {
+			dsu.connect(num, num+1)
+		}
+	}
+	for _, num := range nums {
+		dsu.find(num)
+	}
+	max := 0
+	for child, father := range dsu.parent {
+		if father-child+1 > max {
+			max = father - child + 1
+		}
+	}
+	return max
 }
 
 func main() {
@@ -2076,5 +2395,7 @@ func main() {
 	//}
 	//fmt.Println(isValidSudoku(board))
 	//["abbbbbbbbbbb","aaaaaaaaaaab"]
-	fmt.Println(numDecodings("226"))
+	//fmt.Println(numDecodings("226"))
+	nums := []int{100, 4, 200, 1, 3, 2}
+	fmt.Println(longestConsecutive(nums))
 }

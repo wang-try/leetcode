@@ -2381,6 +2381,210 @@ func longestConsecutiveV3(nums []int) int {
 	return max
 }
 
+//130. Surrounded Regions
+func solve(board [][]byte) {
+	row := len(board)
+	column := len(board[0])
+	for i := 0; i < row; i++ {
+		for j := 0; j < column; j++ {
+			if i == 0 || j == 0 || i == row-1 || j == column-1 {
+				if board[i][j] == 'O' {
+					solveHelp(board, i, j)
+				}
+			}
+		}
+	}
+
+	for i := 0; i < row; i++ {
+		for j := 0; j < column; j++ {
+			if board[i][j] == '#' {
+				board[i][j] = 'O'
+			} else if board[i][j] == 'O' {
+				board[i][j] = 'X'
+			}
+
+		}
+	}
+}
+
+func solveHelp(board [][]byte, i, j int) {
+	if i < 0 || j < 0 || i >= len(board) || j >= len(board[0]) {
+		return
+	}
+	if board[i][j] == 'O' {
+		board[i][j] = '#'
+		solveHelp(board, i-1, j)
+		solveHelp(board, i+1, j)
+		solveHelp(board, i, j-1)
+		solveHelp(board, i, j+1)
+	}
+	return
+}
+
+type UF struct {
+	Parent []int
+	Rank   []int //rank[i] = rank of subtree rooted at i
+	Count  int
+}
+
+func NewUf(n int) *UF {
+	parent := make([]int, n)
+	rank := make([]int, n)
+	for i := 0; i < n; i++ {
+		parent[i] = i
+		rank[i] = 0
+	}
+	count := n
+	return &UF{
+		Parent: parent,
+		Rank:   rank,
+		Count:  count,
+	}
+}
+
+func (u *UF) find(p int) int {
+	for p != u.Parent[p] {
+		u.Parent[p] = u.Parent[u.Parent[p]]
+		p = u.Parent[p]
+	}
+	return p
+}
+
+func (u *UF) connect(p int, q int) {
+	pp := u.find(p)
+	qp := u.find(q)
+	if pp == qp {
+		return
+	}
+	if u.Rank[pp] < u.Rank[qp] {
+		u.Parent[pp] = qp
+	} else if u.Rank[pp] > u.Rank[qp] {
+		u.Parent[qp] = pp
+	} else {
+		u.Parent[qp] = pp
+		u.Rank[pp]++
+	}
+	u.Count--
+}
+
+func (u *UF) isConnect(p int, q int) bool {
+	return u.find(p) == u.find(q)
+}
+
+func solveV2(board [][]byte) {
+	row := len(board)
+	if row == 0 {
+		return
+	}
+	column := len(board[0])
+	uf := NewUf(row*column + 1)
+	for i := 0; i < row; i++ {
+		for j := 0; j < column; j++ {
+			if (i == 0 || j == 0 || i == row-1 || j == column-1) && board[i][j] == 'O' {
+				uf.connect(i*column+j, row*column)
+			} else if board[i][j] == 'O' {
+				if board[i-1][j] == 'O' {
+					uf.connect(i*column+j, (i-1)*column+j)
+				}
+				if board[i+1][j] == 'O' {
+					uf.connect(i*column+j, (i+1)*column+j)
+				}
+				if board[i][j-1] == 'O' {
+					uf.connect(i*column+j, i*column+j-1)
+				}
+				if board[i][j+1] == 'O' {
+					uf.connect(i*column+j, i*column+j+1)
+				}
+
+			}
+		}
+	}
+
+	for i := 0; i < row; i++ {
+		for j := 0; j < column; j++ {
+			if board[i][j] == 'O' && !uf.isConnect(i*column+j, row*column) {
+				board[i][j] = 'X'
+			}
+		}
+	}
+}
+
+//131. Palindrome Partitioning
+func partition(s string) [][]string {
+	var list []string
+	var res [][]string
+	start := 0
+	for i := start; i < len(s); i++ {
+		if isPal(s[start : i+1]) {
+			partitionRec(s, s[start:i+1], i, list, &res)
+		}
+
+	}
+
+	return res
+}
+
+func partitionRec(s string, substr string, end int, list []string, res *[][]string) {
+	if !isPal(substr) {
+		return
+	}
+	list = append(list, substr)
+	if end == len(s)-1 {
+		*res = append(*res, list)
+		return
+	}
+
+	for i := end + 1; i < len(s); i++ {
+		tmp := make([]string, len(list))
+		copy(tmp, list)
+		partitionRec(s, s[end+1:i+1], i, tmp, res)
+	}
+
+}
+
+func partitionV2(s string) [][]string {
+	dp := make([][][]string, len(s))
+	dp[0] = append(dp[0], []string{string(s[0])})
+	for i := 1; i < len(s); i++ {
+		for j := i; j >= 0; j-- {
+			if isPal(s[j : i+1]) {
+				if j-1 >= 0 {
+					for _, list := range dp[j-1] {
+						temp := make([]string, len(list))
+						copy(temp, list)
+						temp = append(temp, s[j:i+1])
+						dp[i] = append(dp[i], temp)
+					}
+				}
+				if j == 0 {
+					dp[i] = append(dp[i], []string{s[j : i+1]})
+				}
+
+			}
+		}
+
+	}
+	return dp[len(s)-1]
+}
+
+func isPal(str string) bool {
+	lhs := 0
+	rhs := len(str) - 1
+	for lhs < rhs {
+		if str[lhs] != str[rhs] {
+			return false
+		}
+		lhs++
+		rhs--
+	}
+	return true
+}
+
+//134. Gas Station
+func canCompleteCircuit(gas []int, cost []int) int {
+	return 0
+}
+
 func main() {
 	//board := [][]byte{
 	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
@@ -2396,6 +2600,6 @@ func main() {
 	//fmt.Println(isValidSudoku(board))
 	//["abbbbbbbbbbb","aaaaaaaaaaab"]
 	//fmt.Println(numDecodings("226"))
-	nums := []int{100, 4, 200, 1, 3, 2}
-	fmt.Println(longestConsecutive(nums))
+	//nums := []int{100, 4, 200, 1, 3, 2}
+	fmt.Println(partition("aab"))
 }

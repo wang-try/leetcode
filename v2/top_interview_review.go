@@ -2582,9 +2582,86 @@ func isPal(str string) bool {
 
 //134. Gas Station
 func canCompleteCircuit(gas []int, cost []int) int {
-	return 0
+	curSum := 0
+	totalSum := 0
+	start := 0
+
+	for i := 0; i < len(gas); i++ {
+		curSum += gas[i] - cost[i]
+		totalSum += gas[i] - cost[i]
+
+		if curSum < 0 {
+			start = i + 1
+			curSum = 0
+		}
+	}
+
+	if totalSum < 0 {
+		return -1
+	}
+
+	return start
 }
 
+type NodeRandom struct {
+	Val    int
+	Next   *NodeRandom
+	Random *NodeRandom
+}
+
+//138. Copy List with Random Pointer
+func copyRandomList(head *NodeRandom) *NodeRandom {
+	if head == nil {
+		return nil
+	}
+	src2copy := make(map[*NodeRandom]*NodeRandom)
+	copyHead := new(NodeRandom)
+	copyNode := copyHead
+	cur := head
+	for cur != nil {
+		copyNode.Next = &NodeRandom{
+			Val:    cur.Val,
+			Next:   nil,
+			Random: nil,
+		}
+		src2copy[cur] = copyNode.Next
+		cur = cur.Next
+		copyNode = copyNode.Next
+	}
+	cur = head
+	for cur != nil {
+		src2copy[cur].Random = src2copy[cur.Random]
+		cur = cur.Next
+	}
+	return copyHead.Next
+}
+
+//139. Word Break
+func wordBreak(s string, wordDict []string) bool {
+	lth := len(s)
+	dp := make([]bool, lth)
+	word2exist := make(map[string]bool)
+	for _, word := range wordDict {
+		word2exist[word] = true
+	}
+	for i := 0; i < lth; i++ {
+		for j := i; j >= 0; j-- {
+			substr := s[j : i+1]
+			if word2exist[substr] {
+				if j == 0 {
+					dp[i] = true
+				} else {
+					if dp[j-1] {
+						dp[i] = true
+					}
+
+				}
+			}
+		}
+	}
+	return dp[lth-1]
+
+}
 func main() {
 	//board := [][]byte{
 	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
@@ -2601,5 +2678,6 @@ func main() {
 	//["abbbbbbbbbbb","aaaaaaaaaaab"]
 	//fmt.Println(numDecodings("226"))
 	//nums := []int{100, 4, 200, 1, 3, 2}
-	fmt.Println(partition("aab"))
+	//gas = [1,2,3,4,5], cost = [3,4,5,1,2]
+	fmt.Println(canCompleteCircuit([]int{2, 3, 4}, []int{3, 4, 3}))
 }

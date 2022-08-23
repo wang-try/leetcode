@@ -2662,6 +2662,117 @@ func wordBreak(s string, wordDict []string) bool {
 	return dp[lth-1]
 
 }
+
+//146. LRU Cache
+type LRUCache struct {
+	key2Node [10000]*LRUNode
+	len      int
+	cap      int
+	head     *LRUNode
+	tail     *LRUNode
+}
+
+type LRUNode struct {
+	key  int
+	val  int
+	pre  *LRUNode
+	next *LRUNode
+}
+
+func Constructor(capacity int) LRUCache {
+	return LRUCache{
+		key2Node: [10000]*LRUNode{},
+		len:      0,
+		cap:      capacity,
+		head:     nil,
+		tail:     nil,
+	}
+
+}
+
+func (this *LRUCache) Get(key int) int {
+	node := this.key2Node[key]
+	if node == nil {
+		return -1
+	}
+
+	val := this.key2Node[key].val
+	//将此节点移到链表末尾
+	if this.len > 1 {
+		this.Put(key, val)
+	}
+	return val
+}
+
+//
+func (this *LRUCache) Put(key int, value int) {
+	if this.len == 0 {
+		node := &LRUNode{
+			key:  key,
+			val:  value,
+			pre:  nil,
+			next: nil,
+		}
+		this.key2Node[key] = node
+		this.head = node
+		this.tail = node
+		this.len++
+		return
+	}
+	node := this.key2Node[key]
+	if node != nil {
+		node.val = value
+		if node != this.tail {
+			if node == this.head {
+				next := node.next
+				next.pre = nil
+				this.head = next
+			} else {
+				//此节点拆开，放到尾部
+				preNode := node.pre
+				nextNode := node.next
+				preNode.next = nextNode
+				nextNode.pre = preNode
+			}
+			//添加到尾部
+			this.tail.next = node
+			node.pre = this.tail
+			node.next = nil
+			this.tail = node
+		}
+	} else {
+		newNode := &LRUNode{
+			key:  key,
+			val:  value,
+			pre:  this.tail,
+			next: nil,
+		}
+		this.key2Node[key] = newNode
+		if this.len == this.cap {
+			//驱逐表头
+			this.key2Node[this.head.key] = nil
+			if this.cap == 1 {
+				this.head = newNode
+				this.tail = newNode
+				newNode.pre = nil
+				return
+			}
+			nextNode := this.head.next
+			nextNode.pre = nil
+			this.head = nextNode
+			//放在表尾
+			this.tail.next = newNode
+			this.tail = newNode
+			return
+		}
+		//将此节点放在表尾
+		this.tail.next = newNode
+		this.tail = newNode
+		this.len++
+	}
+
+}
+
 func main() {
 	//board := [][]byte{
 	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
@@ -2675,9 +2786,8 @@ func main() {
 	//	{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
 	//}
 	//fmt.Println(isValidSudoku(board))
-	//["abbbbbbbbbbb","aaaaaaaaaaab"]
-	//fmt.Println(numDecodings("226"))
-	//nums := []int{100, 4, 200, 1, 3, 2}
-	//gas = [1,2,3,4,5], cost = [3,4,5,1,2]
 	fmt.Println(canCompleteCircuit([]int{2, 3, 4}, []int{3, 4, 3}))
+
+	//["LRUCache","put","put","get","put","get","put","get","get","get"]
+	//[[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
 }

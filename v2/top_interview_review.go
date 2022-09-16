@@ -2773,6 +2773,176 @@ func (this *LRUCache) Put(key int, value int) {
 
 }
 
+//超时 148. Sort List
+func sortList(head *ListNode) *ListNode {
+	if head == nil {
+		return head
+	}
+	lth := 0
+	cur := head
+	for cur != nil {
+		lth++
+		cur = cur.Next
+	}
+	for i := 0; i <= lth; i++ {
+		for j, cur := 0, head; j < lth-i && cur != nil; j, cur = j+1, cur.Next {
+			if cur.Val > cur.Next.Val {
+				cur.Val, cur.Next.Val = cur.Next.Val, cur.Val
+			}
+		}
+	}
+	return head
+}
+
+//
+func sortListV2(head *ListNode) *ListNode {
+	if head == nil || head.Next == nil {
+		return head
+	}
+
+	slow, fast := head, head.Next
+	for fast.Next != nil && fast.Next.Next != nil {
+		slow = slow.Next
+		fast = fast.Next.Next
+	}
+	rightHead := slow.Next
+	slow.Next = nil
+
+	return mergeSortList(sortListV2(head), sortListV2(rightHead))
+}
+
+func mergeSortList(list1 *ListNode, list2 *ListNode) *ListNode {
+	result := &ListNode{Val: 0}
+	current := result
+	for list1 != nil && list2 != nil {
+		if list1.Val < list2.Val {
+			current.Next = list1
+			list1 = list1.Next
+		} else {
+			current.Next = list2
+			list2 = list2.Next
+		}
+		current = current.Next
+	}
+
+	if list1 != nil {
+		current.Next = list1
+	}
+	if list2 != nil {
+		current.Next = list2
+	}
+
+	return result.Next
+}
+
+//150. Evaluate Reverse Polish Notation
+func evalRPN(tokens []string) int {
+	var numStack []int
+	for i := 0; i < len(tokens); i++ {
+		if tokens[i] != "+" && tokens[i] != "-" && tokens[i] != "*" && tokens[i] != "/" {
+			num, _ := strconv.Atoi(tokens[i])
+			numStack = append(numStack, num)
+		} else {
+			lth := len(numStack)
+			num1 := numStack[lth-1]
+			num2 := numStack[lth-2]
+			var tmp int
+			if tokens[i] == "+" {
+				tmp = num1 + num2
+			} else if tokens[i] == "-" {
+				tmp = num2 - num1
+			} else if tokens[i] == "*" {
+				tmp = num1 * num2
+			} else if tokens[i] == "/" {
+				tmp = num2 / num1
+			}
+			numStack = numStack[:lth-2]
+			numStack = append(numStack, tmp)
+		}
+	}
+	return numStack[0]
+
+}
+
+//152. Maximum Product Subarray
+func maxProduct(nums []int) int {
+	res, maxP, minP := nums[0], nums[0], nums[0]
+	for i := 1; i < len(nums); i++ {
+		mxp := maxP
+		mnp := minP
+		maxP = max(max(mxp*nums[i], mnp*nums[i]), nums[i])
+		minP = min(min(mxp*nums[i], mnp*nums[i]), nums[i])
+		res = max(maxP, res)
+	}
+	return res
+}
+
+//155. Min Stack
+type MinStack struct {
+	data []int
+	mins []int
+}
+
+func ConstructorMinStack() MinStack {
+	return MinStack{
+		data: []int{},
+		mins: []int{},
+	}
+}
+
+func (this *MinStack) Push(x int) {
+	this.data = append(this.data, x)
+	newmin := x
+	if len(this.mins) > 0 {
+		if oldmin := this.GetMin(); oldmin < x {
+			newmin = oldmin
+		}
+	}
+	this.mins = append(this.mins, newmin)
+}
+
+func (this *MinStack) Pop() {
+	this.data = this.data[:len(this.data)-1]
+	this.mins = this.mins[:len(this.mins)-1]
+}
+
+func (this *MinStack) Top() int {
+	return this.data[len(this.data)-1]
+}
+
+func (this *MinStack) GetMin() int {
+	return this.mins[len(this.mins)-1]
+}
+
+//162. Find Peak Element
+func findPeakElement(nums []int) int {
+	maxIndex := 0
+	maxNum := nums[0]
+	for i := 1; i < len(nums); i++ {
+		if nums[i] > maxNum {
+			maxNum = nums[i]
+			maxIndex = i
+
+		}
+	}
+	return maxIndex
+
+}
+
+func findPeakElementV2(nums []int) int {
+	lhs, rhs := 0, len(nums)-1
+	for lhs < rhs {
+		mid := (lhs + rhs) / 2
+		if nums[mid] > nums[mid+1] {
+			rhs = mid
+		} else {
+			lhs = mid + 1
+		}
+	}
+	return lhs
+
+}
+
 func main() {
 	//board := [][]byte{
 	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
@@ -2786,8 +2956,6 @@ func main() {
 	//	{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
 	//}
 	//fmt.Println(isValidSudoku(board))
-	fmt.Println(canCompleteCircuit([]int{2, 3, 4}, []int{3, 4, 3}))
-
-	//["LRUCache","put","put","get","put","get","put","get","get","get"]
-	//[[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
+	nums := []int{1, 2, 1, 3, 5, 6, 4}
+	fmt.Println(findPeakElement(nums))
 }

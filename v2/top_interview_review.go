@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"sort"
 	"strconv"
@@ -2943,19 +2942,256 @@ func findPeakElementV2(nums []int) int {
 
 }
 
+//300. Longest Increasing Subsequencemj
+func lengthOfLIS(nums []int) int {
+	lth := len(nums)
+	dp := make([][]int, lth)
+	for i := 0; i < lth; i++ {
+		dp[i] = make([]int, lth)
+	}
+	dp[0][0] = 1
+	maxSub := 1
+	for i := 1; i < lth; i++ {
+		dp[i][i] = 1
+		for j := 0; j < i; j++ {
+			if nums[i] > nums[j] {
+				dp[i][j] = dp[j][j] + 1
+			} else if nums[i] == nums[j] {
+				dp[i][j] = dp[j][j]
+			} else {
+				dp[i][j] = 1
+			}
+			dp[i][i] = max(dp[i][i], dp[i][j])
+		}
+		maxSub = max(maxSub, dp[i][i])
+	}
+	return maxSub
+
+}
+
+func lengthOfLISV2(nums []int) int {
+	if len(nums) == 0 {
+		return 0
+	}
+
+	incNums := make([]int, len(nums))
+	incNums[0] = nums[0]
+	incLth := 0
+	for i := 1; i < len(nums); i++ {
+		idx := biSearchIdx(incNums, nums[i], 0, incLth)
+		incNums[idx] = nums[i]
+		if idx == incLth+1 {
+			incLth++
+		}
+	}
+
+	return incLth + 1
+}
+
+func biSearchIdx(incNums []int, target, start, incLth int) int {
+	for start <= incLth {
+		mid := (incLth + start) / 2
+		if incNums[mid] > target {
+			incLth = mid - 1
+		} else if incNums[mid] < target {
+			start = mid + 1
+		} else {
+			return mid
+		}
+	}
+	return start
+}
+
+//674. Longest Continuous Increasing Subsequence
+func findLengthOfLCIS(nums []int) int {
+	dp := make([]int, len(nums))
+	dp[0] = 1
+	maxIncLth := 1
+	for i := 1; i < len(nums); i++ {
+		if nums[i] > nums[i-1] {
+			dp[i] = dp[i-1] + 1
+		} else {
+			dp[i] = 1
+		}
+		maxIncLth = max(maxIncLth, dp[i])
+	}
+	return maxIncLth
+}
+
+//166. Fraction to Recurring Decimal
+func fractionToDecimal(numerator int, denominator int) string {
+	res := ""
+	if numerator < 0 && denominator > 0 {
+		res += "-"
+		numerator *= -1
+	}
+	if numerator > 0 && denominator < 0 {
+		res += "-"
+		denominator *= -1
+	}
+	if numerator < 0 && denominator < 0 {
+		numerator *= -1
+		denominator *= -1
+	}
+
+	preFraction := numerator / denominator
+	remain := numerator % denominator
+	if remain == 0 {
+		return res + strconv.Itoa(preFraction)
+	}
+	var afterFractionList []int
+	remain2index := make(map[int]int)
+	cnt := 0
+	res += strconv.Itoa(preFraction) + "."
+	for {
+		remain *= 10
+		if index, ok := remain2index[remain]; ok {
+			for i := 0; i < len(afterFractionList); i++ {
+				if i < index {
+					res += strconv.Itoa(afterFractionList[i])
+					continue
+				} else if i == index {
+					res += "("
+				}
+				res += strconv.Itoa(afterFractionList[i])
+			}
+			res += ")"
+			return res
+		} else {
+			remain2index[remain] = cnt
+			afterFraction := remain / denominator
+			remain = remain % denominator
+			afterFractionList = append(afterFractionList, afterFraction)
+			cnt++
+			if remain == 0 {
+				break
+			}
+		}
+
+	}
+
+	for i := 0; i < len(afterFractionList); i++ {
+		res += strconv.Itoa(afterFractionList[i])
+	}
+	return res
+
+}
+
+//172. Factorial Trailing Zeroes
+func trailingZeroes(n int) int {
+	res := 0
+	for n != 0 {
+		res += n / 5
+		n /= 5
+	}
+	return res
+}
+
+//179. Largest Number
+func largestNumber(nums []int) string {
+	var strList []string
+	for _, num := range nums {
+		str := strconv.Itoa(num)
+		strList = append(strList, str)
+	}
+	sort.Slice(strList, func(i, j int) bool {
+		return strList[i]+strList[j] > strList[j]+strList[i]
+	})
+	if strList[0] == "0" {
+		return "0"
+	}
+
+	return strings.Join(strList, "")
+}
+
+func maxStr(a, b string) string {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+//189. Rotate Array
+func rotateArr(nums []int, k int) {
+	lth := len(nums)
+	k %= lth
+	help(nums, 0, lth-1)
+	help(nums, 0, k-1)
+	help(nums, k, lth-1)
+
+}
+
+func help(nums []int, start, end int) {
+	for start < end {
+		nums[start], nums[end] = nums[end], nums[start]
+		end--
+		start++
+	}
+
+}
+
+//236. Lowest Common Ancestor of a Binary Tree
+func LowestCommonAncestor(root, p, q *TreeNode) *TreeNode {
+	if root == nil {
+		return nil
+	}
+	if root == p || root == q {
+		return root
+	}
+	left := LowestCommonAncestor(root.Left, p, q)
+	right := LowestCommonAncestor(root.Right, p, q)
+	if left != nil && right != nil {
+		return root
+	}
+	if left == nil {
+		return right
+	}
+	return left
+}
+
+func LowestCommonAncestorV2(root, p, q *TreeNode) *TreeNode {
+
+	var twoNodes []*TreeNode
+	child2father := make(map[*TreeNode]*TreeNode)
+	var stack []*TreeNode
+	stack = append(stack, root)
+	child2father[root] = root
+	for len(stack) > 0 {
+		node := stack[0]
+		if node == p || node == q {
+			twoNodes = append(twoNodes, node)
+		}
+		if node.Left != nil {
+			stack = append(stack, node.Left)
+			child2father[node.Left] = node
+		}
+		if node.Right != nil {
+			stack = append(stack, node.Right)
+			child2father[node.Right] = node
+		}
+		stack = stack[1:]
+	}
+	fatherHash := make(map[*TreeNode]bool)
+	high := twoNodes[0]
+	fatherHash[high] = true
+	for high != child2father[high] {
+		fatherHash[child2father[high]] = true
+		high = child2father[high]
+	}
+	low := twoNodes[1]
+	var res *TreeNode
+	for low != child2father[low] {
+		if _, ok := fatherHash[child2father[low]]; ok {
+			res = child2father[low]
+			break
+		}
+		low = child2father[low]
+	}
+
+	return res
+
+}
+
 func main() {
-	//board := [][]byte{
-	//	{'5', '3', '.', '.', '7', '.', '.', '.', '.'},
-	//	{'6', '.', '.', '1', '9', '5', '.', '.', '.'},
-	//	{'.', '9', '8', '.', '.', '.', '.', '6', '.'},
-	//	{'8', '.', '.', '.', '6', '.', '.', '.', '3'},
-	//	{'4', '.', '.', '8', '.', '3', '.', '.', '1'},
-	//	{'7', '.', '.', '.', '2', '.', '.', '.', '6'},
-	//	{'.', '6', '.', '.', '.', '.', '2', '8', '.'},
-	//	{'.', '.', '.', '4', '1', '9', '.', '.', '5'},
-	//	{'.', '.', '.', '.', '8', '.', '.', '7', '9'},
-	//}
-	//fmt.Println(isValidSudoku(board))
-	nums := []int{1, 2, 1, 3, 5, 6, 4}
-	fmt.Println(findPeakElement(nums))
+
 }

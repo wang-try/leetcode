@@ -48,3 +48,9 @@ func TestLowestCommonAncestor(t *testing.T) {
 	res := LowestCommonAncestor(root, p, q)
 	fmt.Println(res.Val)
 }
+
+func TestLongestCommonPrefix(t *testing.T) {
+	str := LongestCommonPrefix([]string{"flower", "flow", "flight"})
+	fmt.Println(str)
+
+}

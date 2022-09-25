@@ -61,7 +61,7 @@ func romanToInt(s string) int {
 }
 
 //14. Longest Common Prefix
-func longestCommonPrefix(strs []string) string {
+func LongestCommonPrefix(strs []string) string {
 	var sb strings.Builder
 	for pivotIndex := 0; pivotIndex < len(strs[0]); pivotIndex++ {
 		i := 0
@@ -110,7 +110,7 @@ type ListNode struct {
 	Next *ListNode
 }
 
-//26. Remove Duplicates from Sorted Array
+// 21. Merge Two Sorted Lists
 func mergeTwoLists(list1 *ListNode, list2 *ListNode) *ListNode {
 	if list1 == nil && list2 == nil {
 		return nil
@@ -277,11 +277,6 @@ func climbStairs(n int) int {
 		dp[i] = dp[i-1] + dp[i-2]
 	}
 	return dp[n]
-}
-
-func testSlice(nums []int) {
-	nums[0] = 99
-	nums = append(nums, 2)
 }
 
 //88. Merge Sorted Array
@@ -608,8 +603,6 @@ func isHappy(n int) bool {
 		}
 		result[sum] = true
 	}
-
-	return false
 }
 
 //206. Reverse Linked List
@@ -1211,16 +1204,15 @@ func removeNthFromEnd(head *ListNode, n int) *ListNode {
 	for i := 1; i <= n && fast != nil; i++ {
 		fast = fast.Next
 	}
+	if fast == nil {
+		return head.Next
+	}
+
 	for fast != nil && fast.Next != nil {
 		slow = slow.Next
 		fast = fast.Next
 	}
-	if fast == nil {
-		head = head.Next
-	}
-	if slow.Next == nil {
-		return nil
-	}
+
 	slow.Next = slow.Next.Next
 	return head
 }
@@ -1244,6 +1236,25 @@ func generateParenthesisHelp(n, left, right int, curParenthesis string, res *[]s
 		generateParenthesisHelp(n, left+1, right, curParenthesis+"(", res)
 	} else if left == n && right < n {
 		generateParenthesisHelp(n, left, right+1, curParenthesis+")", res)
+	}
+}
+
+func generateParenthesisV2(n int) []string {
+	var res []string
+	generateParenthesisHelpV2(&res, "", 0, 0, n)
+	return res
+}
+
+func generateParenthesisHelpV2(res *[]string, str string, cnt, remain2match, num int) {
+	if cnt == num && remain2match == 0 {
+		*res = append(*res, str)
+		return
+	}
+	if cnt < num {
+		generateParenthesisHelpV2(res, str+"(", cnt+1, remain2match+1, num)
+	}
+	if remain2match > 0 {
+		generateParenthesisHelpV2(res, str+")", cnt, remain2match-1, num)
 	}
 }
 
@@ -1323,8 +1334,9 @@ func search(nums []int, target int) int {
 		mid := (lhs + rhs) / 2
 		if target == nums[mid] {
 			return mid
-			//右半部分排好序
+
 		}
+		//右半部分排好序
 		if nums[mid] < nums[rhs] {
 			if target > nums[mid] && target <= nums[rhs] {
 				lhs = mid + 1
@@ -1473,10 +1485,6 @@ func groupAnagrams(strs []string) [][]string {
 		ana := [26]int{}
 		for _, c := range v {
 			ana[c-'a']++
-		}
-
-		if _, ok := dict[ana]; !ok {
-			dict[ana] = make([]string, 0)
 		}
 		dict[ana] = append(dict[ana], v)
 	}

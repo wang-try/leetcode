@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"strconv"
@@ -3200,6 +3201,28 @@ func LowestCommonAncestorV2(root, p, q *TreeNode) *TreeNode {
 
 }
 
-func main() {
+//31. Next Permutation
+func nextPermutation(nums []int) {
+	i := len(nums) - 2
+	for ; i >= 0 && nums[i+1] <= nums[i]; i-- {
+	}
+	if i >= 0 {
+		j := len(nums) - 1
+		for ; nums[j] <= nums[i]; j-- {
+		}
+		nums[i], nums[j] = nums[j], nums[i]
+	}
+	lhs := i + 1
+	rhs := len(nums) - 1
+	for lhs < rhs {
+		nums[lhs], nums[rhs] = nums[rhs], nums[lhs]
+		lhs++
+		rhs--
+	}
+}
 
+func main() {
+	nums := []int{3, 2, 1}
+	nextPermutation(nums)
+	fmt.Println(nums)
 }

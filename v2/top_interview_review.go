@@ -1802,24 +1802,17 @@ func mergeIntervals(intervals [][]int) [][]int {
 	var res [][]int
 	start := intervals[0][0]
 	end := intervals[0][1]
-	lth := len(intervals)
-	index := 0
-	for index < lth {
-		cmpStart := intervals[index][0]
-		cmpEnd := intervals[index][1]
-		if cmpStart <= end {
-			if cmpEnd > end {
-				end = cmpEnd
+	for i := 1; i < len(intervals); i++ {
+		if intervals[i][0] <= end {
+			if intervals[i][1] > end {
+				end = intervals[i][1]
 			}
 		} else {
 			res = append(res, []int{start, end})
-			start = cmpStart
-			end = cmpEnd
+			start = intervals[i][0]
+			end = intervals[i][1]
 		}
-		index++
 	}
-	res = append(res, []int{start, end})
-
 	return res
 }
 
@@ -2001,6 +1994,51 @@ func dfs(board [][]byte, word string, x, y int) bool {
 	return false
 }
 
+func existV3(board [][]byte, word string) bool {
+	for i := 0; i < len(board); i++ {
+		for j := 0; j < len(board[i]); j++ {
+			if board[i][j] == word[0] {
+				if len(word) == 1 {
+					return true
+				}
+				if existHelp(board, i, j, word) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+
+}
+
+func existHelp(board [][]byte, row, column int, word string) bool {
+	if len(word) == 0 {
+		return true
+	}
+	tmp := board[row][column]
+	if board[row][column] == word[0] {
+		board[row][column] = '0'
+		//上
+		if row > 0 && existHelp(board, row-1, column, word[1:]) {
+			return true
+		}
+		//下
+		if row < len(board)-1 && existHelp(board, row+1, column, word[1:]) {
+			return true
+		}
+		//左
+		if column > 0 && existHelp(board, row, column-1, word[1:]) {
+			return true
+		}
+		//右
+		if column < len(board[0])-1 && existHelp(board, row, column+1, word[1:]) {
+			return true
+		}
+		board[row][column] = tmp
+	}
+	return false
+}
+
 //91. Decode Ways
 func numDecodings(s string) int {
 	if s[0] == '0' {
@@ -2028,7 +2066,7 @@ func numDecodings(s string) int {
 
 func numDecodingsV2(s string) int {
 	lth := len(s)
-	if string(s[0]) == "0" {
+	if s[0] == '0' {
 		return 0
 	}
 	dp := make([]int, lth+1)
@@ -2573,6 +2611,28 @@ func partitionV2(s string) [][]string {
 
 	}
 	return dp[len(s)-1]
+}
+
+func partitionV3(s string) [][]string {
+	var res [][]string
+	partitionV3Help(&res, 0, []string{}, s)
+	return res
+}
+
+func partitionV3Help(res *[][]string, index int, palindromeList []string, s string) {
+	if index == len(s) {
+		tmp := make([]string, len(palindromeList))
+		copy(tmp, palindromeList)
+		*res = append(*res, tmp)
+		return
+	}
+	for i := index; i < len(s); i++ {
+		if isPal(s[index : i+1]) {
+			palindromeList = append(palindromeList, s[index:i+1])
+			partitionV3Help(res, i+1, palindromeList, s)
+			palindromeList = palindromeList[:len(palindromeList)-1]
+		}
+	}
 }
 
 func isPal(str string) bool {

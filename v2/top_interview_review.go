@@ -3281,8 +3281,136 @@ func nextPermutation(nums []int) {
 	}
 }
 
+//198. House Robber
+func rob(nums []int) int {
+	dp := make([][]int, len(nums)+1)
+	for i := 0; i <= len(nums); i++ {
+		dp[i] = make([]int, len(nums)+1)
+	}
+	maxMoney := nums[0]
+	dp[0][0] = nums[0]
+	for i := 1; i < len(nums); i++ {
+		dp[i][i] = nums[i]
+		for j := 0; j < i-1; j++ {
+			dp[i][j] = dp[j][j] + nums[i]
+			dp[i][i] = max(dp[i][i], dp[i][j])
+		}
+		maxMoney = max(maxMoney, dp[i][i])
+	}
+	return maxMoney
+}
+
+func robV2(nums []int) int {
+	dp := make([]int, len(nums))
+	dp[0] = nums[0]
+	maxMoney := nums[0]
+	for i := 1; i < len(nums); i++ {
+		dp[i] = nums[i]
+		for j := 0; j < i-1; j++ {
+			dp[i] = max(dp[i], dp[j]+nums[i])
+		}
+		maxMoney = max(maxMoney, dp[i])
+	}
+	return maxMoney
+}
+
+func robV3(nums []int) int {
+	lth := len(nums)
+	if lth == 0 {
+		return 0
+	}
+	if lth == 1 {
+		return nums[0]
+	}
+	dp := make([]int, lth)
+	dp[0], dp[1] = nums[0], max(nums[0], nums[1])
+	for i := 2; i < lth; i++ {
+		dp[i] = max(dp[i-1], dp[i-2]+nums[i])
+	}
+	return dp[lth-1]
+}
+
+//200. Number of Islands
+func numIslands(grid [][]byte) int {
+	row := len(grid)
+	column := len(grid[0])
+	cnt := 0
+	for i := 0; i < row; i++ {
+		for j := 0; j < column; j++ {
+			if grid[i][j] == '1' {
+				cnt++
+				numsIslandsHelp(grid, i, j)
+			}
+		}
+	}
+	return cnt
+}
+
+func numsIslandsHelp(grid [][]byte, i, j int) {
+	if i < 0 || j < 0 || i >= len(grid) || j >= len(grid[0]) {
+		return
+	}
+	if grid[i][j] == '1' {
+		grid[i][j] = '0'
+		//上下
+		numsIslandsHelp(grid, i-1, j)
+		numsIslandsHelp(grid, i+1, j)
+		//左右
+		numsIslandsHelp(grid, i, j-1)
+		numsIslandsHelp(grid, i, j+1)
+	}
+
+}
+
+func numIslandsV2(grid [][]byte) int {
+	row := len(grid)
+	column := len(grid[0])
+	visited := make([]bool, row*column)
+	cnt := 0
+	for i := 0; i < row; i++ {
+		for j := 0; j < column; j++ {
+			if grid[i][j] == '1' && !visited[i*column+j] {
+				dfsIsLands(grid, i, j, visited)
+				cnt++
+			}
+		}
+	}
+	return cnt
+
+}
+
+func dfsIsLands(grid [][]byte, i, j int, visited []bool) {
+	row := len(grid)
+	column := len(grid[0])
+
+	if i >= 0 && i < row && j >= 0 && j < column && !visited[i*column+j] && grid[i][j] == '1' {
+		visited[i*column+j] = true
+		dfsIsLands(grid, i-1, j, visited)
+		dfsIsLands(grid, i+1, j, visited)
+		dfsIsLands(grid, i, j-1, visited)
+		dfsIsLands(grid, i, j+1, visited)
+	}
+
+}
+
+func countPrimes(n int) int {
+	if n == 0 || n == 1 {
+		return 0
+	}
+	notPrime := make([]bool, n)
+	cnt := 0
+	for i := 2; i < n; i++ {
+		if notPrime[i] {
+			continue
+		}
+		cnt++
+		for j := 2; i*j < n; j++ {
+			notPrime[i*j] = true
+		}
+	}
+	return cnt
+}
+
 func main() {
-	nums := []int{3, 2, 1}
-	nextPermutation(nums)
-	fmt.Println(nums)
+	fmt.Println(countPrimes(2))
 }

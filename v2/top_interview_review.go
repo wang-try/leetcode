@@ -1383,6 +1383,136 @@ func searchRange(nums []int, target int) []int {
 
 }
 
+func searchRangeV2(nums []int, target int) []int {
+	targetStartIndex, targetEndIndex := -1, -1
+	searchRangexxxHelp(nums, target, 0, len(nums)-1, &targetStartIndex, &targetEndIndex)
+	return []int{targetStartIndex, targetEndIndex}
+}
+
+func searchRangexxxHelp(nums []int, target, start, end int, targetStartIndex, targetEndIndex *int) {
+	if start <= end {
+		index := bSearch(nums, target, start, end)
+		if index != -1 {
+			if *targetStartIndex == -1 {
+				*targetStartIndex = index
+			}
+			if *targetEndIndex == -1 {
+				*targetEndIndex = index
+			}
+			if *targetStartIndex != -1 && index < *targetStartIndex {
+				*targetStartIndex = index
+			}
+			if *targetEndIndex != -1 && *targetEndIndex < index {
+				*targetEndIndex = index
+			}
+			searchRangexxxHelp(nums, target, start, index-1, targetStartIndex, targetEndIndex)
+			searchRangexxxHelp(nums, target, index+1, end, targetStartIndex, targetEndIndex)
+		}
+
+	}
+}
+
+func bSearch(nums []int, target, start, end int) int {
+	for start <= end {
+		mid := (start + end) / 2
+		if nums[mid] == target {
+			return mid
+		} else if nums[mid] > target {
+			end = mid - 1
+		} else {
+			start = mid + 1
+		}
+	}
+	return -1
+}
+
+func searchRangeV3(nums []int, target int) []int {
+	if len(nums) == 0 {
+		return []int{-1, -1}
+	}
+	return []int{binaryLeft(nums, target), binaryRight(nums, target)}
+}
+
+func binaryLeft(nums []int, target int) int {
+	left, right := 0, len(nums)-1
+
+	for left < right {
+		mid := (right + left) / 2
+		if nums[mid] < target {
+			left = mid + 1
+		} else {
+			right = mid
+		}
+	}
+	if nums[left] == target {
+		return left
+	}
+	return -1
+}
+
+func binaryRight(nums []int, target int) int {
+	left, right := 0, len(nums)-1
+
+	for left < right {
+		mid := (right+left)/2 + 1
+		if nums[mid] > target {
+			right = mid - 1
+		} else if nums[mid] <= target {
+			left = mid
+		}
+	}
+	if nums[left] == target {
+		return left
+	}
+	return -1
+}
+
+func searchRangeV4(nums []int, target int) []int {
+	if len(nums) == 0 {
+		return []int{-1, -1}
+	}
+	left := bLeft(nums, target)
+	if left >= len(nums) || nums[left] != target {
+		return []int{-1, -1}
+	}
+	right := bRight(nums, target)
+	return []int{left, right}
+}
+
+func bLeft(nums []int, target int) int {
+	left, right := 0, len(nums)-1
+
+	for left <= right {
+		mid := (right + left) / 2
+		if target == nums[mid] {
+			right = mid - 1
+		} else if nums[mid] < target {
+			left = mid + 1
+		} else {
+			right = mid - 1
+		}
+	}
+
+	return left
+}
+
+func bRight(nums []int, target int) int {
+	left, right := 0, len(nums)-1
+
+	for left <= right {
+		mid := (right + left) / 2
+		if nums[mid] == target {
+			left = mid + 1
+		} else if nums[mid] < target {
+			left = mid + 1
+		} else {
+			right = mid - 1
+		}
+	}
+
+	return right
+}
+
 //36. Valid Sudoku
 func isValidSudoku(board [][]byte) bool {
 	rowRecord := make([]map[byte]bool, 9)
@@ -3409,6 +3539,60 @@ func countPrimes(n int) int {
 		}
 	}
 	return cnt
+}
+
+//1143. Longest Common Subsequence
+func longestCommonSubsequence(text1 string, text2 string) int {
+	dp := make([][]int, len(text1)+1)
+	for i := 0; i <= len(text1); i++ {
+		dp[i] = make([]int, len(text2)+1)
+	}
+	for i := 1; i <= len(text1); i++ {
+		for j := 1; j <= len(text2); j++ {
+			if text1[i-1] == text2[j-1] {
+				dp[i][j] = dp[i-1][j-1] + 1
+			} else {
+				dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+			}
+		}
+	}
+	return dp[len(text1)][len(text2)]
+}
+
+func canFinish(numCourses int, prerequisites [][]int) bool {
+	nodeInNum := make([]int, numCourses)
+	father2childes := make(map[int][]int)
+	for _, prerequisite := range prerequisites {
+		father := prerequisite[1]
+		child := prerequisite[0]
+		father2childes[father] = append(father2childes[father], child)
+		nodeInNum[child]++
+	}
+	cnt := 0
+	var stack []int
+	for node, inNum := range nodeInNum {
+		if inNum == 0 {
+			stack = append(stack, node)
+			cnt++
+		}
+	}
+
+	for len(stack) > 0 {
+		node := stack[0]
+		for _, child := range father2childes[node] {
+			nodeInNum[child]--
+			if nodeInNum[child] == 0 {
+				stack = append(stack, child)
+				cnt++
+			}
+		}
+		stack = stack[1:]
+	}
+	if cnt == len(nodeInNum) {
+		return true
+	}
+
+	return false
 }
 
 func main() {

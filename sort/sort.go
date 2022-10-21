@@ -81,6 +81,25 @@ func heapSort(nums []int) {
 
 func heapAdjust(nums []int, start int, len int) {
 	var child int
+	//若子节点指标在范围内才做比较
+	for ; 2*start < len; start = child {
+		child = 2*start + 1
+		//先比较两个子节点大小，选择最大的
+		if child < len-1 && nums[child+1] > nums[child] {
+			child++
+		}
+		//如果父亲节点小于子节点，则交换
+		if nums[start] < nums[child] {
+			nums[start], nums[child] = nums[child], nums[start]
+		} else {
+			//如果父节点大于子节点代表调整完毕，直接跳出函数
+			break
+		}
+	}
+}
+
+func heapAdjustV2(nums []int, start, len int) {
+	var child int
 	for ; 2*start < len; start = child {
 		child = 2*start + 1
 		if child < len-1 && nums[child+1] > nums[child] {

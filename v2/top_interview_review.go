@@ -3595,6 +3595,71 @@ func canFinish(numCourses int, prerequisites [][]int) bool {
 	return false
 }
 
+type Trie struct {
+	Next   []*Trie
+	IsWord bool
+}
+
+func Constructorxx() Trie {
+	return Trie{
+		Next:   make([]*Trie, 26),
+		IsWord: false,
+	}
+}
+
+func (this *Trie) Insert(word string) {
+	cur := this
+	for i, ch := range word {
+		if cur.Next[ch-'a'] == nil {
+			cur.Next[ch-'a'] = &Trie{
+				Next:   make([]*Trie, 26),
+				IsWord: false,
+			}
+		}
+		cur = cur.Next[ch-'a']
+		if i == len(word)-1 {
+			cur.IsWord = true
+		}
+	}
+
+}
+
+func (this *Trie) Search(word string) bool {
+	cur := this
+	for _, ch := range word {
+		if cur.Next[ch-'a'] != nil {
+			cur = cur.Next[ch-'a']
+		} else {
+			return false
+		}
+
+	}
+	return cur.IsWord
+}
+
+func (this *Trie) StartsWith(prefix string) bool {
+	cur := this
+	for _, ch := range prefix {
+		if cur.Next[ch-'a'] != nil {
+			cur = cur.Next[ch-'a']
+		} else {
+			return false
+		}
+
+	}
+	return true
+}
+
+/**
+ * Your Trie object will be instantiated and called as such:
+ * obj := Constructor();
+ * obj.Insert(word);
+ * param_2 := obj.Search(word);
+ * param_3 := obj.StartsWith(prefix);
+ */
+
 func main() {
-	fmt.Println(countPrimes(2))
+	tire := Constructorxx()
+	tire.Insert("apple")
+	fmt.Println(tire)
 }
